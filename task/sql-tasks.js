@@ -151,7 +151,16 @@ async function task_1_6(db) {
  *
  */
 async function task_1_7(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+        SELECT 
+            a.EmployeeID as "EmployeeId",
+            CONCAT(a.FirstName, ' ', a.LastName) as "FullName",
+            COALESCE(CONCAT(b.FirstName, ' ', b.LastName), '-') as "ReportsTo"
+        From Employees as a
+        LEFT JOIN Employees as b ON a.ReportsTo=b.EmployeeID
+        ORDER BY EmployeeID;
+    `);
+    return result[0];
 }
 
 /**
@@ -163,7 +172,15 @@ async function task_1_7(db) {
  *
  */
 async function task_1_8(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+        SELECT 
+            c.CategoryName as "CategoryName",
+            Count(p.ProductID) as "TotalNumberOfProducts"
+        From Categories as c
+        LEFT JOIN Products as p ON c.CategoryID=p.CategoryID
+        GROUP BY CategoryName;
+    `);
+    return result[0];
 }
 
 /**
