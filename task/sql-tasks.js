@@ -43,7 +43,16 @@ async function task_1_1(db) {
  *
  */
 async function task_1_2(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+        SELECT
+           OrderID as "Order Id",
+           sum(UnitPrice*Quantity) as "Order Total Price",
+           round((sum(Discount*Quantity)/sum(UnitPrice*Quantity))*100, 3) as "Total Order Discount, %"
+        FROM OrderDetails
+        GROUP BY OrderID
+        ORDER BY OrderID DESC;
+    `);
+    return result[0];
 }
 
 /**
@@ -54,7 +63,13 @@ async function task_1_2(db) {
  *
  */
 async function task_1_3(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+        SELECT 
+            CustomerID as "CustomerId",
+            CompanyName as "CompanyName"
+        FROM Customers WHERE Country='USA' and (Fax='' or Fax is null);
+    `);
+    return result[0];
 }
 
 /**
