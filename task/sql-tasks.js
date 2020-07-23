@@ -93,7 +93,15 @@ async function task_1_4(db) {
  *
  */
 async function task_1_5(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+        SELECT 
+            ProductID as "ProductId",
+            ProductName as "ProductName",
+            QuantityPerUnit as "QuantityPerUnit"
+        FROM Products WHERE ProductName >= 'A' and ProductName < 'G'
+        ORDER BY ProductName;
+    `);
+    return result[0];
 }
 
 /**
