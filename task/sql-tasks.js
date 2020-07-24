@@ -401,7 +401,18 @@ async function task_1_19(db) {
  *
  */
 async function task_1_20(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        e.EmployeeID as "EmployeeID",
+        CONCAT(e.FirstName, ' ', e.LastName) as "Employee Full Name",
+        SUM(od.UnitPrice * od.Quantity) as "Amount, $"
+        FROM Employees as e
+        INNER JOIN Orders as o ON o.EmployeeID=e.EmployeeID
+        INNER JOIN OrderDetails as od ON od.OrderID=o.OrderID
+        GROUP BY EmployeeID
+        ORDER BY \`Amount, $\` desc limit 0,1;
+    `);
+    return result[0];
 }
 
 /**
@@ -411,7 +422,15 @@ async function task_1_20(db) {
  * @return {array}
  */
 async function task_1_21(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        OrderID,
+        SUM(UnitPrice*Quantity) as "Maximum Purchase Amount, $"
+    FROM OrderDetails
+    GROUP BY OrderID
+    ORDER BY \`Maximum Purchase Amount, $\` desc limit 0,1;
+    `);
+    return result[0];
 }
 
 /**
