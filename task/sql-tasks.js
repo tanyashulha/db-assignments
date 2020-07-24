@@ -285,7 +285,7 @@ async function task_1_13(db) {
  *
  */
 async function task_1_14(db) {
-        let result = await db.query(`
+    let result = await db.query(`
         SELECT 
             ProductName, UnitsOnOrder, UnitsInStock
         FROM Products WHERE UnitsInStock<UnitsOnOrder;
@@ -301,7 +301,14 @@ async function task_1_14(db) {
  *
  */
 async function task_1_15(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        Count(MONTHNAME(OrderDate))
+
+    FROM Orders WHERE YEAR(OrderDate)=1997
+    GROUP BY MONTHNAME(OrderDate)
+    `);
+    return result[0];
 }
 
 /**
@@ -312,7 +319,13 @@ async function task_1_15(db) {
  *
  */
 async function task_1_16(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        OrderID, CustomerID, ShipCountry
+
+    FROM Orders WHERE ShipPostalCode !=0 or ShipPostalCode !='';
+    `);
+    return result[0];
 }
 
 /**
@@ -325,7 +338,15 @@ async function task_1_16(db) {
  *
  */
 async function task_1_17(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        c.CategoryName as "CategoryName", AVG(p.UnitPrice) as "AvgPrice"
+    From Categories as c
+    LEFT JOIN Products as p ON p.CategoryID=c.CategoryID
+    GROUP BY \`CategoryName\`
+    ORDER BY \`AvgPrice\` desc, \`CategoryName\`;
+    `);
+    return result[0];
 }
 
 /**
@@ -337,7 +358,15 @@ async function task_1_17(db) {
  *
  */
 async function task_1_18(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT 
+        DATE_FORMAT(OrderDate, '%Y-%m-%d %T') as "OrderDate",
+        COUNT(OrderID) as "Total Number of Orders"
+    FROM Orders WHERE YEAR(OrderDate) = 1998 
+    GROUP BY \`OrderDate\`
+    ORDER BY \`OrderDate\`;
+    `);
+    return result[0];
 }
 
 /**
