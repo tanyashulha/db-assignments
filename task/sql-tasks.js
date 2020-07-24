@@ -378,7 +378,18 @@ async function task_1_18(db) {
  *
  */
 async function task_1_19(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        c.CustomerID as "CustomerID", c.CompanyName as "CompanyName",
+        SUM(od.UnitPrice*od.Quantity) as "TotalOrdersAmount, $"
+    From Customers as c
+    INNER JOIN Orders as o ON o.CustomerID=c.CustomerID
+    INNER JOIN OrderDetails as od ON od.OrderID=o.OrderID
+    GROUP BY \`CustomerID\`
+    HAVING \`TotalOrdersAmount, $\` >= 10000 
+    ORDER BY \`TotalOrdersAmount, $\` desc, \`CustomerID\`;
+    `);
+    return result[0];
 }
 
 /**
