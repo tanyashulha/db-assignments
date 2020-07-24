@@ -301,14 +301,7 @@ async function task_1_14(db) {
  *
  */
 async function task_1_15(db) {
-    let result = await db.query(`
-    SELECT
-        Count(MONTHNAME(OrderDate))
-
-    FROM Orders WHERE YEAR(OrderDate)=1997
-    GROUP BY MONTHNAME(OrderDate)
-    `);
-    return result[0];
+    throw new Error("Not implemented");
 }
 
 /**
