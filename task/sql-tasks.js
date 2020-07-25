@@ -270,9 +270,8 @@ async function task_1_12(db) {
 async function task_1_13(db) {
     let result = await db.query(`
         SELECT
-            Count(ProductID) as "TotalOfCurrentProducts",
-            Sum(Discontinued=1) as "TotalOfDiscontinuedProducts"
-        FROM Products;
+            (SELECT COUNT(ProductID) From Products) as "TotalOfCurrentProducts",
+            (SELECT COUNT(Discontinued) From Products WHERE Discontinued = 1) as "TotalOfDiscontinuedProducts";
     `);
     return result[0];
 }
@@ -301,7 +300,25 @@ async function task_1_14(db) {
  *
  */
 async function task_1_15(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        COUNT(CASE WHEN MONTH(OrderDate) = 1 THEN 1 ELSE NULL END) as "January",
+        COUNT(CASE WHEN MONTH(OrderDate) = 2 THEN 1 ELSE NULL END) as "February",
+        COUNT(CASE WHEN MONTH(OrderDate) = 3 THEN 1 ELSE NULL END) as "March",
+        COUNT(CASE WHEN MONTH(OrderDate) = 4 THEN 1 ELSE NULL END) as "April",
+        COUNT(CASE WHEN MONTH(OrderDate) = 5 THEN 1 ELSE NULL END) as "May",
+        COUNT(CASE WHEN MONTH(OrderDate) = 6 THEN 1 ELSE NULL END) as "June",
+        COUNT(CASE WHEN MONTH(OrderDate) = 7 THEN 1 ELSE NULL END) as "July",
+        COUNT(CASE WHEN MONTH(OrderDate) = 8 THEN 1 ELSE NULL END) as "August",
+        COUNT(CASE WHEN MONTH(OrderDate) = 9 THEN 1 ELSE NULL END) as "September",
+        COUNT(CASE WHEN MONTH(OrderDate) = 10 THEN 1 ELSE NULL END) as "October",
+        COUNT(CASE WHEN MONTH(OrderDate) = 11 THEN 1 ELSE NULL END) as "November",
+        COUNT(CASE WHEN MONTH(OrderDate) = 12 THEN 1 ELSE NULL END) as "December"
+
+        FROM Orders WHERE YEAR(OrderDate)=1997
+        ORDER BY Month(OrderDate);
+    `);
+    return result[0];
 }
 
 /**
