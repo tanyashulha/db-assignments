@@ -301,7 +301,25 @@ async function task_1_14(db) {
  *
  */
 async function task_1_15(db) {
-    throw new Error("Not implemented");
+    let result = await db.query(`
+    SELECT
+        SUM(CASE WHEN MONTH(OrderDate) = 1 THEN 1 ELSE 0 END) as "January",
+        SUM(CASE WHEN MONTH(OrderDate) = 2 THEN 1 ELSE 0 END) as "February",
+        SUM(CASE WHEN MONTH(OrderDate) = 3 THEN 1 ELSE 0 END) as "March",
+        SUM(CASE WHEN MONTH(OrderDate) = 4 THEN 1 ELSE 0 END) as "April",
+        SUM(CASE WHEN MONTH(OrderDate) = 5 THEN 1 ELSE 0 END) as "May",
+        SUM(CASE WHEN MONTH(OrderDate) = 6 THEN 1 ELSE 0 END) as "June",
+        SUM(CASE WHEN MONTH(OrderDate) = 7 THEN 1 ELSE 0 END) as "July",
+        SUM(CASE WHEN MONTH(OrderDate) = 8 THEN 1 ELSE 0 END) as "August",
+        SUM(CASE WHEN MONTH(OrderDate) = 9 THEN 1 ELSE 0 END) as "September",
+        SUM(CASE WHEN MONTH(OrderDate) = 10 THEN 1 ELSE 0 END) as "October",
+        SUM(CASE WHEN MONTH(OrderDate) = 11 THEN 1 ELSE 0 END) as "November",
+        SUM(CASE WHEN MONTH(OrderDate) = 12 THEN 1 ELSE 0 END) as "December"
+
+        FROM Orders WHERE YEAR(OrderDate)=1997
+        ORDER BY Month(OrderDate);
+    `);
+    return result[0];
 }
 
 /**
