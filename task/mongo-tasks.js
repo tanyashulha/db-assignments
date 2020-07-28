@@ -42,7 +42,9 @@ async function task_1_1(db) {
                 City: {$ifNull: ['$City', "Unspecified"]}
             }
         },
-        {$sort: {City: 1, "Employee Full Name": 1}}
+        {
+            $sort: {City: 1, "Employee Full Name": 1}
+        }
     ]).toArray();
     return result;
 }
@@ -66,7 +68,25 @@ async function task_1_2(db) {
  * HINT: check by string "NULL" values
  */
 async function task_1_3(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('customers').aggregate([
+        { 
+            $match : { 
+                Fax : "NULL" 
+            } 
+        },
+        {
+            $project: {
+                _id: 0,
+                CustomerID: 1,
+                CompanyName: 1
+            }
+        },
+        
+        {
+            $sort: {CustomerID: 1}
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
