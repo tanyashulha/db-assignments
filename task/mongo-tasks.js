@@ -57,8 +57,28 @@ async function task_1_1(db) {
  *  - Discount in OrderDetails is a discount($) per Unit.
  *  - Round all values to MAX 3 decimal places
  */
-async function task_1_2(db) {
-    throw new Error("Not implemented");
+async function task_1_2(db) {  
+    const result = await db.collection('order-details').aggregate([ 
+    {
+        $group: {
+            _id: "$OrderID",
+            "total": { $sum: { $multiply: [ "$UnitPrice", "$Quantity" ] } },
+            "totalDisc": { $sum: { $multiply: [ "$Discount", "$Quantity" ] } }
+        }
+    }, 
+    { 
+        $project: {  
+            _id: 0,
+            "Order Id": "$_id",
+            "Order Total Price": { $round: ["$total", 2] },
+            "Total Order Discount, %": {$round: [{ $multiply: [{ $divide: ["$totalDisc", "$total"] }, 100] }, 3]}
+        }
+    } ,
+    {
+        $sort: {"Order Id": -1}
+    }
+    ]).toArray();
+    return result;
 }
 
 /**
@@ -80,8 +100,7 @@ async function task_1_3(db) {
                 CustomerID: 1,
                 CompanyName: 1
             }
-        },
-        
+        },  
         {
             $sort: {CustomerID: 1}
         }
@@ -100,6 +119,21 @@ async function task_1_3(db) {
  *
  */
 async function task_1_4(db) {
+    // const result = await db.collection('orders').aggregate([
+    //     {
+    //         $project: {
+    //             _id: 0,
+    //             "Customer Id": {CustomerID: 1},
+    //         }
+    //     },
+    //     {
+    //         $group: {
+    //             _id: "$CustomerID",
+    //             "Total number of Orders": { $sum: 1 }
+    //         }
+    //     }
+    // ]).toArray();
+    // return result;
     throw new Error("Not implemented");
 }
 
