@@ -119,22 +119,27 @@ async function task_1_3(db) {
  *
  */
 async function task_1_4(db) {
-    // const result = await db.collection('orders').aggregate([
-    //     {
-    //         $project: {
-    //             _id: 0,
-    //             "Customer Id": {CustomerID: 1},
-    //         }
-    //     },
-    //     {
-    //         $group: {
-    //             _id: "$CustomerID",
-    //             "Total number of Orders": { $sum: 1 }
-    //         }
-    //     }
-    // ]).toArray();
-    // return result;
-    throw new Error("Not implemented");
+    const count = await db.collection('orders').countDocuments();
+    const result = await db.collection('orders').aggregate([ 
+        {
+            $group: {
+                _id: "$CustomerID",
+                "total": { $sum: 1 }
+            }
+        }, 
+        { 
+            $project: {  
+                _id: 0,
+                "Customer Id": "$_id",
+                "Total number of Orders": "$total",
+                "% of all orders": { $round: [{ $divide: [{ $multiply: ["$total", 100] }, count] }, 3] }
+            }
+        } ,
+        {
+            $sort: {"% of all orders": -1, "Customer Id": 1}
+        }
+        ]).toArray();
+    return result;
 }
 
 /**
@@ -142,7 +147,25 @@ async function task_1_4(db) {
  * | ProductID | ProductName | QuantityPerUnit |
  */
 async function task_1_5(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('products').aggregate([ 
+        {
+            $match: {
+              ProductName: { $regex: /^[a-f]/i }
+            }
+          },
+        {
+            $project: {
+                _id: 0,
+                ProductID: 1,
+                ProductName: 1,
+                QuantityPerUnit: 1,
+            }
+        },
+        {
+            $sort: {ProductName: 1}
+        }
+        ]).toArray();
+    return result;
 }
 
 /**
