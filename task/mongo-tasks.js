@@ -179,7 +179,46 @@ async function task_1_5(db) {
  *       https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/
  */
 async function task_1_6(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('products').aggregate([ 
+        {
+            $lookup: {
+                from: "categories",
+                localField: "CategoryID",
+                foreignField: "CategoryID",
+                as: "cat_doc"
+            }
+        },
+        {
+            $lookup: {
+                from: "suppliers",
+                localField: "SupplierID",
+                foreignField: "SupplierID",
+                as: "sup_doc"
+            }
+        },
+        {
+            $unwind: {
+                path: "$cat_doc"
+            }
+        },
+        {
+            $unwind: {
+                path: "$sup_doc"
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                ProductName: 1,
+                CategoryName: "$cat_doc.CategoryName",
+                SupplierCompanyName: "$sup_doc.CompanyName",
+            }
+        },
+        {
+            $sort: {ProductName: 1, CategoryName: 1}
+        }
+        ]).toArray();
+    return result;
 }
 
 /**
@@ -192,7 +231,34 @@ async function task_1_6(db) {
  * Reports To - Full name. If the employee does not report to anybody leave "-" in the column.
  */
 async function task_1_7(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('employees').aggregate([
+        {
+            $lookup: {
+              from: "employees", 
+              localField: "ReportsTo", 
+              foreignField: "EmployeeID", 
+              as: "emp_doc"
+            }
+        },
+        {
+            $unwind: {
+                path: "$emp_doc",
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                EmployeeID: 1,
+                "FullName": {$concat: ["$TitleOfCourtesy", "$FirstName", " ", "$LastName"]},
+                "ReportsTo": {$ifNull: [{$concat: ["$emp_doc.FirstName", " ", "$emp_doc.LastName"]}, "-"]}
+            }
+        },
+        {
+            $sort: {EmployeeID: 1}
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
