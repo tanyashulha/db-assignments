@@ -340,7 +340,7 @@ async function task_1_10(db) {
             $match: {
               Discontinued: 1
             }
-          },
+        },
         {
             $project: {
                 _id: 0,
@@ -362,7 +362,24 @@ async function task_1_10(db) {
  * Order by UnitPrice then by ProductName
  */
 async function task_1_11(db) {
-    throw new Error("Not implemented");
+    let result = await db.collection('products').aggregate([
+        {
+            $match: {
+                UnitPrice: { $gte: 5, $lte: 15}
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                ProductName: 1,
+                UnitPrice: 1
+            }
+        },
+        {
+            $sort: {UnitPrice: 1, ProductName: 1}
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
@@ -372,7 +389,25 @@ async function task_1_11(db) {
  * Order products by price (asc) then by ProductName.
  */
 async function task_1_12(db) {
-    throw new Error("Not implemented");
+    let result = await db.collection('products').aggregate([
+        {
+            $project: {
+                _id: 0,
+                ProductName: 1,
+                UnitPrice: 1
+            }
+        },
+        {
+            $sort: {UnitPrice: -1}
+        },
+        {
+            $limit: 20
+        },
+        {
+            $sort: {UnitPrice: 1, ProductName: 1}
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
@@ -414,7 +449,21 @@ async function task_1_15(db) {
  * Order by OrderID
  */
 async function task_1_16(db) {
-    throw new Error("Not implemented");
+    let result = await db.collection('orders').aggregate([
+        {
+            $match: {
+                ShipPostalCode: {$exists: true}
+            }
+        }, {
+            $project: {
+                _id: 0, 
+                OrderID: 1, 
+                CustomerID: 1, 
+                ShipCountry: 1
+            }
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
