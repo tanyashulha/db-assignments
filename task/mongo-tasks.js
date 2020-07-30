@@ -268,7 +268,38 @@ async function task_1_7(db) {
  * Order by CategoryName
  */
 async function task_1_8(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('products').aggregate([ 
+        {
+            $group: {
+                _id: "$CategoryID",
+                "total": { $sum: 1 }
+            }
+        },
+        {
+            $lookup: {
+              from: "categories", 
+              localField: "_id", 
+              foreignField: "CategoryID", 
+              as: "cat_doc"
+            }
+        },
+        {
+            $unwind: {
+                path: "$cat_doc"
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                CategoryName: "$cat_doc.CategoryName",
+                TotalNumberOfProducts: "$total"
+            }
+        },
+        {
+            $sort: {CategoryName: 1}
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
@@ -278,7 +309,24 @@ async function task_1_8(db) {
  * order by CustomerID
  */
 async function task_1_9(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('customers').aggregate([ 
+        {
+            $match: {
+              ContactName: { $regex: /^F..n/ }
+            }
+          },
+        {
+            $project: {
+                _id: 0,
+                CustomerID: 1,
+                ContactName: 1
+            }
+        },
+        {
+            $sort: {CustomerID: 1}
+        }
+        ]).toArray();
+    return result;
 }
 
 /**
@@ -287,7 +335,24 @@ async function task_1_9(db) {
  * order by ProductID
  */
 async function task_1_10(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('products').aggregate([ 
+        {
+            $match: {
+              Discontinued: 1
+            }
+          },
+        {
+            $project: {
+                _id: 0,
+                ProductID: 1,
+                ProductName: 1
+            }
+        },
+        {
+            $sort: {ProductID: 1}
+        }
+        ]).toArray();
+    return result;
 }
 
 /**
