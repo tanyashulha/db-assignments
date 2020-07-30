@@ -417,7 +417,29 @@ async function task_1_12(db) {
  * HINT: That's acceptable to make it in 2 queries
  */
 async function task_1_13(db) {
-    throw new Error("Not implemented");
+    const count = await db.collection('products').countDocuments();
+    const result = await db.collection('products').aggregate([  
+        {
+            $match: {
+                Discontinued: 1
+            }
+        },
+        { 
+            $count: "TotalOfDiscontinuedProducts"
+        },
+        { 
+            $project: {  
+                _id: 0,
+                "TotalOfDiscontinuedProducts": 1
+            }
+        },
+        { 
+            $addFields: { 
+                "TotalOfCurrentProducts": count
+            }
+        }
+        ]).next();
+    return result;
 }
 
 /**
