@@ -451,7 +451,25 @@ async function task_1_13(db) {
  *       https://docs.mongodb.com/manual/reference/operator/query/expr/#op._S_expr
  */
 async function task_1_14(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('products').aggregate([  
+        {
+            $match: {
+              $expr: {$lt: ["$UnitsInStock", "$UnitsOnOrder"]}
+            }
+        },
+        { 
+            $project: {  
+                _id: 0,
+                ProductName: 1,
+                UnitsOnOrder: 1,
+                UnitsInStock: 1
+            }
+        },
+        {
+            $sort: {ProductName: 1}
+        }
+        ]).toArray();
+    return result;
 }
 
 /**
@@ -511,7 +529,36 @@ async function task_1_17(db) {
  *       https://docs.mongodb.com/manual/reference/operator/aggregation/dateFromString/
  */
 async function task_1_18(db) {
-    throw new Error("Not implemented");
+    let result = await db.collection('orders').aggregate([
+        {
+            $project: {
+                _id: 0, 
+                OrderDate: {$dateFromString: {dateString: "$OrderDate"}}
+            }
+        },
+        {
+            $match: {
+                $expr: {$eq: [{$year: "$OrderDate"}, 1998]}
+            }
+        },
+        {
+            $group: {
+                _id: {$dateToString: {date: "$OrderDate", format: "%Y-%m-%d"}},
+                "Total Number of Orders": {$sum: 1}
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                "Order Date": "$_id",
+                "Total Number of Orders": 1
+            }
+        },
+        {
+            $sort: {"Order Date": 1}
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
