@@ -514,7 +514,38 @@ async function task_1_16(db) {
  *  - Round AvgPrice to MAX 2 decimal places
  */
 async function task_1_17(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('products').aggregate([ 
+        {
+            $group: {
+                _id: "$CategoryID",
+                "price": { $avg: "$UnitPrice" }
+            }
+        },
+        {
+            $lookup: {
+              from: "categories", 
+              localField: "_id", 
+              foreignField: "CategoryID", 
+              as: "cat_doc"
+            }
+        },
+        {
+            $unwind: {
+                path: "$cat_doc"
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                CategoryName: "$cat_doc.CategoryName",
+                "AvgPrice": {$round: ["$price", 2]}
+            }
+        },
+        {
+            $sort: {"AvgPrice": -1, CategoryName: 1}
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
@@ -586,7 +617,70 @@ async function task_1_19(db) {
  * | EmployeeID | Employee Full Name | Amount, $ |
  */
 async function task_1_20(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('employees').aggregate([ 
+        {
+            $project: {
+                _id: 0,
+                EmployeeID: 1,
+                "name": {$concat: ["$FirstName", " ", "$LastName"]},
+            }
+        }, 
+        {
+            $lookup: {
+                from: "orders",
+                localField: "EmployeeID",
+                foreignField: "EmployeeID",
+                as: "orders_doc",
+        
+            }
+        }, 
+        {
+            $unwind: {path: "$orders_doc"}
+        }, 
+        {
+            $project: {
+                EmployeeID: 1,
+                "Employee Full Name": "$name",
+                OrderID: "$orders_doc.OrderID"
+            }
+        }, 
+        {
+            $lookup: {
+                from: "order-details",
+                localField: "OrderID",
+                foreignField: "OrderID",
+                as: "deatils_doc"
+            }
+        }, 
+        {
+            $unwind: {path: "$deatils_doc"}
+        }, 
+        {
+            $project: {
+                EmployeeID: 1,
+                "Employee Full Name": "$Employee Full Name",
+                "amount": {$multiply: ["$deatils_doc.UnitPrice", "$deatils_doc.Quantity"]}
+            }
+        }, {
+            $group: {
+                _id: {id: "$EmployeeID", full_name: "$Employee Full Name"},
+                "amount": {$sum: "$amount"}
+            }
+        }, {
+            $project: {
+                _id: 0,
+                EmployeeID: "$_id.id",
+                "Employee Full Name": "$_id.full_name",
+                "Amount, $": "$amount"
+            }
+        }, {
+            $sort: {"Amount, $": -1}
+        },
+        {
+            $limit: 1
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
