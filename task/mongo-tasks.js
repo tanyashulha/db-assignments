@@ -480,7 +480,53 @@ async function task_1_14(db) {
  *       https://docs.mongodb.com/manual/reference/operator/aggregation/dateFromString/
  */
 async function task_1_15(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('orders').aggregate([
+        { 
+            $match: { 
+                OrderDate: {$regex: /^1997/} 
+            } 
+        },
+        {
+            $project: {
+                getMonth: { $month: { $toDate: "$OrderDate" } }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                jan: { $sum: { $cond: {if: { $eq: ["$getMonth", 1] }, then: 1, else: null }}},
+                feb: { $sum: { $cond: {if: { $eq: ["$getMonth", 2] }, then: 1, else: null }}},
+                mar: { $sum: { $cond: {if: { $eq: ["$getMonth", 3] }, then: 1, else: null }}},
+                apr: { $sum: { $cond: {if: { $eq: ["$getMonth", 4] }, then: 1, else: null }}},
+                may: { $sum: { $cond: {if: { $eq: ["$getMonth", 5] }, then: 1, else: null }}},
+                june: { $sum: { $cond: {if: { $eq: ["$getMonth", 6] }, then: 1, else: null }}},
+                july: { $sum: { $cond: {if: { $eq: ["$getMonth", 7] }, then: 1, else: null }}},
+                aug: { $sum: { $cond: {if: { $eq: ["$getMonth", 8] }, then: 1, else: null }}},
+                sept: { $sum: { $cond: {if: { $eq: ["$getMonth", 9] }, then: 1, else: null }}},
+                oct: { $sum: { $cond: {if: { $eq: ["$getMonth", 10] }, then: 1, else: null }}},
+                nov: { $sum: { $cond: {if: { $eq: ["$getMonth", 11] }, then: 1, else: null }}},
+                dec: { $sum: { $cond: {if: { $eq: ["$getMonth", 12] }, then: 1, else: null }}}
+            }
+        },
+        { 
+            $project: {
+                _id: 0,
+                January: "$jan",
+                February: "$feb",
+                March: "$mar",
+                April: "$apr",
+                May: "$may",
+                June: "$june",
+                July: "$july",
+                August: "$aug",
+                September: "$sept",
+                October: "$oct",
+                November: "$nov",
+                December: "$dec"
+            } 
+        }
+    ]).next();
+    return result;
 }
 
 /**
@@ -688,7 +734,26 @@ async function task_1_20(db) {
  * | OrderID | Maximum Purchase Amount, $ |
  */
 async function task_1_21(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('order-details').aggregate([
+        {
+            $group: {
+                _id: "$OrderID",
+                "total": { $sum: { $multiply: [ "$UnitPrice", "$Quantity" ] } } 
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                OrderID: "$_id",
+                "Maximum Purchase Amount, $": "$total"
+            }
+        },
+        { $sort: {"Maximum Purchase Amount, $": -1 }},
+        { 
+            $limit: 1 
+        }
+    ]).toArray();
+    return result;
 }
 
 /**
@@ -701,7 +766,54 @@ async function task_1_21(db) {
  *       https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/#join-conditions-and-uncorrelated-sub-queries
  */
 async function task_1_22(db) {
-    throw new Error("Not implemented");
+    const result = await db.collection('orders').aggregate([
+        {
+            $lookup: {
+                from: "order-details",
+                localField: "OrderID",
+                foreignField: "OrderID",
+                as: "details_doc"
+            }
+        },
+        { $unwind: "$details_doc" },
+        { $sort: { "details_doc.UnitPrice": -1 } },
+        {
+            $group: {
+                _id: "$CustomerID",
+                ProductID: { $first: "$details_doc.ProductID" },
+                UnitPrice: { $max: "$details_doc.UnitPrice" }
+            }
+        },
+        {
+            $lookup: {
+                from: "customers",
+                localField: "_id",
+                foreignField: "CustomerID",
+                as: "cust_doc",
+            }
+        },
+        { $unwind: "$cust_doc" },
+        {
+            $lookup: {
+                from: "products",
+                localField: "ProductID",
+                foreignField: "ProductID",
+                as: "prod_doc"
+            }
+        },
+        { $unwind: "$prod_doc" },
+        {
+            $project: {
+                _id: 0,
+                CustomerID: "$_id",
+                ProductName: "$prod_doc.ProductName",
+                CompanyName: "$cust_doc.CompanyName",
+                PricePerItem: "$UnitPrice"
+            }
+        },
+        { $sort: { PricePerItem: -1, CompanyName: 1, ProductName: 1 } }
+    ]).toArray();
+    return result;
 }
 
 module.exports = {
