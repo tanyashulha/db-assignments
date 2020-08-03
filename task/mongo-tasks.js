@@ -654,7 +654,43 @@ async function task_1_18(db) {
  *       - do not hesitate to "ensureIndex" in "before" function at the top if needed https://docs.mongodb.com/manual/reference/method/db.collection.ensureIndex/
  */
 async function task_1_19(db) {
-    throw new Error("Not implemented");
+    let result = await db.collection('orders').aggregate([
+        {
+            $lookup: {
+                from: "order-details",
+                foreignField: "OrderID",
+                localField: "OrderID",
+                as: "details_doc"
+            }
+        },
+        { $unwind: "$details_doc" },
+        {
+            $group: {
+                _id: "$CustomerID", 
+                "total": { $sum: { $multiply: ["$details_doc.UnitPrice", "$details_doc.Quantity" ] } }
+            }
+        },
+        {
+            $lookup: {
+                from: "customers",
+                foreignField: "CustomerID",
+                localField: "_id",
+                as: "cust_doc"
+            }
+        },
+        { $unwind: "$cust_doc" },
+        {
+            $project: {
+                _id: 0,
+                CustomerID: "$_id",
+                CompanyName: "$cust_doc.CompanyName",
+                "TotalOrdersAmount, $": {$round: ["$total", 2]}
+            }
+        },
+        { $sort: { "TotalOrdersAmount, $": -1, CustomerID: 1}},
+        { $match: { "TotalOrdersAmount, $": {$gt: 10000}}}
+    ]).toArray();
+    return result;
 }
 
 /**
